@@ -1,0 +1,43 @@
+{
+  "name": "frcp",
+  "homepage": "http://maxott.github.io/frcp4node/",
+  "main": "./src/frcp_api.js",
+  "version": "0.1.0",
+  "description": "An FRCP library and client.",
+  "repository": {
+    "type": "git",
+    "url": "https://maxott.github.io/frcp4node.git"
+  },
+  "engines": {
+    "node": "0.10 || 0.11"
+  },
+  "dependencies": {
+    "amqplib": "~0.1",
+    "underscore": "~1.5",
+    "when": "~2.1",
+    "node-uuid": "~1"
+  },
+  "devDependencies": {
+    "mocha": "~1",
+    "claire": "0.4.1",
+    "uglify-js": "2.4.x",
+    "istanbul": "0.1.x"
+  },
+  "scripts": {
+    "test": "make test",
+    "prepublish": "make"
+  },
+  "keywords": [
+    "FRCP",
+    "OMF"
+  ],
+  "author": {
+    "name": "Max Ott",
+    "email": "max.ott@acm.org"
+  },
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/maxott/frcp4node/issues"
+  }
+}
