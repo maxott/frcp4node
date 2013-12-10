@@ -1,6 +1,6 @@
 # FRCP library for Node.JS
 
-[![Build Status](https://travis-ci.org/maxott/frcp.node.png)](https://travis-ci.org/maxott/frcp.node)
+[![Build Status](https://travis-ci.org/maxott/frcp4node.png)](https://travis-ci.org/maxott/frcp4node)
 
     % npm install frcp
 
