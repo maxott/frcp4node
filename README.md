@@ -7,30 +7,33 @@
  * [GitHub pages][gh-pages]
  * [API reference][gh-pages-apiref]
 
-An implementaiotn of the FRCP protocol for node.
+An implementation of the FRCP protocol for node.
 
 Project status:
 
  - Expected to work
- - A fair few tests
 
 Not yet:
 
- - Measured test coverage
+ - RELEASE not implemented
  - Completely stable APIs
+ - Comprehensive tests
+ - Measured test coverage
  - Comprehensive documentation
  - Known to be used in production (if anyone *is* using it in
    production, do let me know)
 
 ## Client API example
 
-```javascript
+More extended examples can be found in the [example directory][example-readme]
 
+### Low-level API
+
+```javascript
 var _ = require('underscore');
+var frcp = require('frcp');
 
 frcp.init({uri: process.argv[2] || 'amqp://localhost'});
-
-// The low-level API
 
 var state = {
   propA: 23,
@@ -57,22 +60,29 @@ var r = frcp.resource('foo')
     return reply;
   })
   .onCreate(function(type, props, frcpProxy) {
-    frcpProxy.onRequest(function() { return {propC: 64}; });
-    return props;
+    var s = {propC: 64};
+    frcpProxy.onRequest(function() { return s; });
+    return s;
   })
   ;
 
-// Send an INFORM message
-r.inform({propA: 1, propB: 2});
+// Send an immediate INFORM message
+r.inform(state);
 
 // Stop monitoring after some time
 setTimeout(function() { r.cancel(); }, 3000);
+```
 
-// The high-level API
+### High-level API
 
+```javascript
+var frcp = require('frcp');
+
+frcp.init({uri: process.argv[2] || 'amqp://localhost'});
+
+// Define a simple object with a single property 'rpm'
 var Engine = function(opts) {
-  var rpm = opts.rpm || 0;
-  
+  var rpm = opts.rpm || 2000;
   var my = function() {};
   
   my.rpm = function(val) {
@@ -80,11 +90,18 @@ var Engine = function(opts) {
     rpm = val;
     return my;
   };
+  return my;
 }
-  
-frcp.bind('eng1', Engine({rpm: 2000}));
-    
-    
+// Describe object
+context =  {
+  type: 'http://schema.mytestbed.net/tut01/engine',
+  rpm: {
+    type: 'http://www.w3.org/2001/XMLSchema#integer',
+    _getSet: 'rpm'
+  }
+}
+// Create an engine and make it available as 'eng1'
+frcp.proxy('eng1', Engine(), context);
 ```
 
 ## Running tests
@@ -113,4 +130,4 @@ really only useful for checking the kind and formatting of the errors.
 [gh-pages]: http://maxott.github.com/frcp4node/
 [gh-pages-apiref]: http://maxott.github.com/frcp4node/doc/channel_api.html
 [nave]: https://github.com/isaacs/nave
-[tutes]: http://maxott.github.com/frcp4node/tree/master/examples/tutorials
+[example-readme]: http://maxott.github.com/frcp4node/examples/README.md

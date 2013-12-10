@@ -10,6 +10,8 @@ DEFAULTS = {
 
 var connection = null;
 var addressPreFix = null;
+var eventEmitter = new (require('events').EventEmitter)();
+
 
 // Initialise the FRCP context
 //
@@ -68,7 +70,7 @@ function parseArgv(opts) {
 }
 
 
-module.exports.resource = function(name, subFunc) {
+var resource_f = module.exports.resource = function(name, subFunc) {
   if (!connection) {
     module.exports.logger.warn('Need to first call init().');
     throw new Error('Need to first call init().');
@@ -76,6 +78,22 @@ module.exports.resource = function(name, subFunc) {
 
   return resource("frcp." + name, subFunc, addressPreFix, connection);
 };
+
+var proxy = require('./proxy');
+module.exports.proxy = function(name, instance, context) {
+  if (!connection) {
+    module.exports.logger.warn('Need to first call init().');
+    throw new Error('Need to first call init().');
+  }
+
+  var r = resource_f(name);
+  return proxy(r, instance, context, eventEmitter);
+};
+
+module.exports.on = function(name, callback) {
+  eventEmitter.on(name, callback);
+};
+
 
 module.exports.logger = function() {
   var my = {};

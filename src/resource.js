@@ -71,7 +71,14 @@ module.exports = function(name, subFunc, addressPrefix, connection) {
       var uid = props.uid || uuid.v1();
       delete props.uid;
       var newRes = frcp.resource(uid);
-      var reply = callback(type, props, newRes, msg);
+      var reply = null;
+      try {
+        reply = callback(type, props, newRes, msg);
+      } catch(err) {
+        //eventEmitter.emit('proxy.request', 'While calling getter', err);
+        msg.reply({}, 'CREATION.ERR');
+        return;
+      }
       if (! reply) { reply = {}; }
       reply.res_id = newRes.address();
       reply.uid = uid;
