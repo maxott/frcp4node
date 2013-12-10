@@ -1,11 +1,13 @@
 # FRCP library for Node.JS
 
-[![Build Status](https://travis-ci.org/squaremo/frcp.node.png)](https://travis-ci.org/squaremo/frcp.node)
+[![Build Status](https://travis-ci.org/maxott/frcp.node.png)](https://travis-ci.org/maxott/frcp.node)
 
-    npm install frcp
+    % npm install frcp
 
+<!--
  * [GitHub pages][gh-pages]
  * [API reference][gh-pages-apiref]
+-->
 
 An implementation of the FRCP protocol for node.
 
@@ -130,4 +132,4 @@ really only useful for checking the kind and formatting of the errors.
 [gh-pages]: http://maxott.github.com/frcp4node/
 [gh-pages-apiref]: http://maxott.github.com/frcp4node/doc/channel_api.html
 [nave]: https://github.com/isaacs/nave
-[example-readme]: http://maxott.github.com/frcp4node/examples/README.md
+[example-readme]: https://github.com/maxott/frcp4node/blob/master/examples/README.md

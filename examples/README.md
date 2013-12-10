@@ -9,7 +9,7 @@ Garage
 
 Start engine proxy:
 
-    node garage.js
+    % node garage.js
     
 Then in a different shell, query the current state:
 
