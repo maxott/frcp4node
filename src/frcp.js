@@ -41,8 +41,17 @@ module.exports.init = function(opts, cfgFunc) {
   addressPreFix = uri + '/';
 
   l.debug("Connecting to '" + opts.uri + "'.");
-  connection = require('./connection')({uri: uri});
-
+  var proto = uri.split(':')[0];
+  switch (proto) {
+    case 'amqp':
+      connection = require('./connection')({uri: uri});
+      break;
+    case 'mock':
+      connection = require('./mock_connection');
+      break;
+    default:
+      throw new Error("Unknown connection protocol '" + proto + "'.");
+  }
   return true;
 };
 
