@@ -8,6 +8,7 @@ module.exports = function(opts) {
   var maxRPM = opts.maxRPM || 12500; // Maximum RPM of the engine is 12,500
   var rpm = opts.rpm || 1000; // Engine starts, RPM will stay at 1000 (i.e. engine is idle)
   var throttle = opts.throttle || 0.0; // Throttle is 0% initially
+  var blownUp = false;
 
   my.maxPower = function(v) {
     if (!arguments.length) { return maxPower; }
@@ -31,7 +32,7 @@ module.exports = function(opts) {
 
   my.throttle = function(v) {
     if (!arguments.length) { return throttle; }
-    throttle = v;
+    if (! blownUp) throttle = v;
     return my;
   };
 
@@ -59,6 +60,28 @@ module.exports = function(opts) {
       _getSet: my.throttle
     },
   };
+
+  // INIT
+
+  var timer = setInterval(function() {
+    if (rpm <= 0) return;
+
+    if (rpm > maxRPM) {
+      // blown up
+      blownUp = true;
+      rpm = throttle = 0;
+      clearInterval(timer);
+      my['@inform']('status', {rpm: 0, throttle: 0});
+      return;
+    }
+
+    rpm += throttle * 1000 - 250;
+    if (rpm < 1000) rpm = 1000; //idle
+
+    if (rpm > 4000) {
+      my['@inform']('status', {rpm: rpm, throttle: throttle});
+    }
+  }, 1000);
 
   return my;
 };

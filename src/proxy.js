@@ -15,9 +15,39 @@ var proxy = module.exports = function(resource, instance, context, eventEmitter)
   if (!ctxt) {
     throw new Error("[" + resource.address() + "] Missing context.");
   }
+  instance['@inform'] = function(itype, props) {
+    resource.inform(props, null, itype);
+  };
+
+
   var evCtxt = {ctxt: ctxt, instance: instance}; // event emitter context
 
   var my = {};
+
+  my.configure = function(props) {
+    var reply = {};
+    _.each(_.intersection(_.keys(props), setterNames), function(pn) {
+      var iVal = props[pn];
+      // var cf = ctxt[pn]._convF; // check if we have a casting function
+      // if (cf) {
+        // iVal = cf(iVal);
+      // }
+      try {
+        setters[pn](iVal);
+        // As the return value of setters is undefined, return the response of
+        // the respective getter. If there is no getter, don't return anything.
+        if (getters[pn]) {
+          var oVal = getters[pn]();
+          oVal = resolveValue(oVal);
+          if (oVal != null) { reply[pn] = oVal; }
+        }
+      } catch(err) {
+        eventEmitter.emit('proxy.configure', 'While calling setter', err);
+        return;
+      }
+    });
+    return reply;
+  };
 
   var getters = {};
   var setters = {};
@@ -45,7 +75,7 @@ var proxy = module.exports = function(resource, instance, context, eventEmitter)
       try {
         var value = getters[pn]();
         value = resolveValue(value);
-        if (value) { reply[pn] = value; }
+        if (value != null) { reply[pn] = value; }
       } catch(err) {
         eventEmitter.emit('proxy.request', 'While calling getter', err);
         return;
@@ -66,7 +96,7 @@ var proxy = module.exports = function(resource, instance, context, eventEmitter)
         if (getters[pn]) {
           var oVal = getters[pn]();
           oVal = resolveValue(oVal);
-          if (oVal) { reply[pn] = oVal; }
+          if (oVal != null) { reply[pn] = oVal; }
         }
       } catch(err) {
         eventEmitter.emit('proxy.configure', 'While calling setter', err);
@@ -84,14 +114,15 @@ var proxy = module.exports = function(resource, instance, context, eventEmitter)
     }
     var membership = props.membership;
     delete props.membership;
-    var child = null;
     try {
-      child = proto(props);
+      // we can't configure directly as we don't know casting information
+      var child = proto({});
+      var childProxy = proxy(resource, child, null, eventEmitter);
+      childProxy.configure(props);
     } catch(err) {
       eventEmitter.emit('proxy.create', 'While creating \'' + type + '\'.', err);
       throw err;
     }
-    var p = proxy(resource, child, null, eventEmitter);
     return;
   };
 
@@ -213,7 +244,40 @@ var proxy = module.exports = function(resource, instance, context, eventEmitter)
       getters[k] = bindFunc(f, k);
     }
     if (f = v._set || v._getSet) {
-      setters[k] = bindFunc(f, k);
+      var convF = null;
+      if (v.type) {
+        var type = resolveCtxtURI(v.type);
+        switch (type) {
+          case 'http://www.w3.org/2001/XMLSchema#string':
+            convF = v._convF = function(val) { f("" + val); };
+            break; // don't do anything
+          case 'http://www.w3.org/2001/XMLSchema#integer':
+          case 'http://www.w3.org/2001/XMLSchema#int':
+          case 'http://www.w3.org/2001/XMLSchema#long':
+          case 'http://www.w3.org/2001/XMLSchema#short':
+          case 'http://www.w3.org/2001/XMLSchema#decimal':
+            convF = v._convF = function(val) { f(parseInt(val)); };
+            break;
+          case 'http://www.w3.org/2001/XMLSchema#boolean':
+            convF = v._convF = function(val) { f(val[0] == 't' || val[0] == 'T'); };
+            break;
+          case 'http://www.w3.org/2001/XMLSchema#double':
+          case 'http://www.w3.org/2001/XMLSchema#float':
+            convF = v._convF = function(val) { f(parseFloat(val)); };
+            break;
+          case 'http://www.w3.org/2001/XMLSchema#date':
+          case 'http://www.w3.org/2001/XMLSchema#dateTime':
+            convF = v._convF = function(val) { f(Date.parse(val)); };
+            break;
+
+          // case 'http://www.w3.org/2001/XMLSchema#time:
+          // case 'http://www.w3.org/2001/XMLSchema#duration':
+
+          default:
+            eventEmitter.emit('proxy.typeConv', "Can convert unknown type '" + type + "'.", evCtxt);
+        }
+      }
+      setters[k] = bindFunc(convF || f, k);
     }
   });
 
