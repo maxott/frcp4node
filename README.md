@@ -103,7 +103,7 @@ context =  {
   }
 }
 // Create an engine and make it available as 'eng1'
-frcp.proxy('eng1', Engine(), context);
+frcp.proxy('eng1', Engine({}), context);
 ```
 
 ## Running tests

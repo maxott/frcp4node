@@ -1,8 +1,8 @@
 {
   "name": "frcp",
   "homepage": "http://maxott.github.io/frcp4node/",
-  "main": "./src/frcp_api.js",
-  "version": "0.1.0",
+  "main": "./src/frcp.js",
+  "version": "0.1.1",
   "description": "An FRCP library and client.",
   "repository": {
     "type": "git",
